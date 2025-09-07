@@ -106,8 +106,8 @@ df_dim_compras = pd.DataFrame(dim_compras)
 df_fato_recebiveis = pd.DataFrame(fato_recebiveis)
 
 # Exportar
-df_dim_clientes.to_csv("dim_clientes.csv", index=False, encoding="utf-8-sig")
-df_dim_compras.to_csv("dim_compras.csv", index=False, encoding="utf-8-sig")
-df_fato_recebiveis.to_csv("fato_recebiveis.csv", index=False, encoding="utf-8-sig")
+df_dim_clientes.to_csv("files/dim_clientes.csv", index=False, encoding="utf-8-sig")
+df_dim_compras.to_csv("files/dim_compras.csv", index=False, encoding="utf-8-sig")
+df_fato_recebiveis.to_csv("files/fato_recebiveis.csv", index=False, encoding="utf-8-sig")
 
 print("Arquivos 'dim_clientes.csv', 'dim_compras.csv' e 'fato_recebiveis.csv' gerados com sucesso!")
