@@ -3,6 +3,7 @@ import random
 from faker import Faker
 from datetime import timedelta, date
 
+
 class DatasetGenerator:
     def __init__(self, output_path="files"):
         self.fake = Faker("pt_BR")
@@ -12,10 +13,11 @@ class DatasetGenerator:
         self.df_dim_compras = None
         self.df_fato_recebiveis = None
         self.df_despesas = None
+        self.df_loans = None
 
-        # ---------- GERAR LOJAS ----------
+    # ---------- GERAR LOJAS ----------
     def create_dataset_store(self, n_lojas=23):
-        codigos_lojas = [f"LOJA_{i:03d}" for i in range(1, n_lojas+1)]
+        codigos_lojas = [f"LOJA_{i:03d}" for i in range(1, n_lojas + 1)]
         ddds_validos = [
             "11","12","13","14","15","16","17","18","19",
             "21","22","24","27","28","31","32","33","34","35","37","38",
@@ -28,12 +30,8 @@ class DatasetGenerator:
 
         for codigo in codigos_lojas:
             area_venda_m2 = random.randint(200, 2000)
-
-            # cálculo de funcionários
             num_funcionarios = max(2, area_venda_m2 // 400)
             custo_funcionarios = num_funcionarios * custo_por_funcionario
-
-            # peso da loja
             peso_loja = round(random.uniform(1, 2.0), 2)
 
             dados_lojas.append({
@@ -59,15 +57,11 @@ class DatasetGenerator:
                 "updated_at": None
             })
 
-        # criar dataframe
         self.df_lojas = pd.DataFrame(dados_lojas)
         self.df_lojas["created_at"] = pd.to_datetime(self.df_lojas["created_at"])
-
-        # exportar
         self.df_lojas.to_csv(f"{self.output_path}/dim_lojas.csv", index=False, encoding="utf-8-sig")
         print("✅ Arquivo 'dim_lojas.csv' gerado.")
         return self.df_lojas
-
 
     # ---------- GERAR VENDAS ----------
     def create_dataset_sales(self, n_clientes=5000):
@@ -75,9 +69,15 @@ class DatasetGenerator:
             raise ValueError("Você precisa gerar lojas primeiro.")
 
         formas_pagamento = [1, 2, 3, 4]
+        pesos_pagamento = [0.55, 0.25, 0.15, 0.05]
         categorias_vendas = [1, 2]
-        sazonalidade = {1: 0.6, 2: 0.7, 3: 0.9, 4: 1.0, 5: 1.0, 6: 1.1,
-                        7: 1.0, 8: 0.9, 9: 1.0, 10: 1.2, 11: 1.5, 12: 1.8}
+        pesos_categorias = [0.7, 0.3]
+
+        sazonalidade = {
+            1: 0.6, 2: 0.7, 3: 0.9, 4: 1.0,
+            5: 1.0, 6: 1.1, 7: 1.0, 8: 0.9,
+            9: 1.0, 10: 1.2, 11: 1.5, 12: 1.8
+        }
 
         clientes = []
         for i in range(n_clientes):
@@ -97,7 +97,6 @@ class DatasetGenerator:
         datas = pd.date_range(start=self.df_lojas["created_at"].min(), end=date.today(), freq="MS")
 
         for mes in datas:
-            mes = pd.Timestamp(mes)
             mes_num = mes.month
             lojas_ativas = self.df_lojas[self.df_lojas["created_at"] <= mes].copy()
 
@@ -109,7 +108,8 @@ class DatasetGenerator:
                     id_compra = self.fake.uuid4()
                     cliente = random.choice(self.df_dim_clientes["id_cliente"])
                     data_emissao = mes + timedelta(days=random.randint(0, 27))
-                    forma_pagamento = random.choice(formas_pagamento)
+                    forma_pagamento = random.choices(formas_pagamento, weights=pesos_pagamento, k=1)[0]
+                    categoria_venda = random.choices(categorias_vendas, weights=pesos_categorias, k=1)[0]
                     valor_compra = round(random.uniform(50, 2000) * loja["peso_loja"], 2)
                     parcelas = 1 if forma_pagamento in [1, 2, 4] else random.choice(range(1, 11))
 
@@ -120,7 +120,7 @@ class DatasetGenerator:
                         "valor_compra": valor_compra,
                         "cd_forma_pagamento": forma_pagamento,
                         "id_cliente": cliente,
-                        "cd_categoria_venda": random.choice(categorias_vendas),
+                        "cd_categoria_venda": categoria_venda,
                         "cd_codigo_loja": loja["cd_codigo_loja"]
                     })
 
@@ -143,61 +143,42 @@ class DatasetGenerator:
         self.df_dim_clientes.to_csv(f"{self.output_path}/dim_clientes.csv", index=False, encoding="utf-8-sig")
         self.df_dim_compras.to_csv(f"{self.output_path}/dim_compras.csv", index=False, encoding="utf-8-sig")
         self.df_fato_recebiveis.to_csv(f"{self.output_path}/fato_recebiveis.csv", index=False, encoding="utf-8-sig")
-
         print("✅ Arquivos de clientes, compras e recebíveis gerados.")
         return self.df_dim_clientes, self.df_dim_compras, self.df_fato_recebiveis
 
     # ---------- GERAR DESPESAS ----------
-    
     def create_dataset_expenses(self):
         if self.df_lojas is None:
             raise ValueError("Você precisa gerar lojas primeiro.")
         if self.df_dim_compras is None:
             raise ValueError("Você precisa gerar compras primeiro.")
 
-        tipos_despesas = [
-            "Aluguel", "Luz", "Água", "Internet",
-            "Salário Funcionários", "Impostos",
-            "Financiamento", "Custo Mercadoria"
-        ]
+        tipos_despesas = ["Aluguel", "Luz", "Água", "Internet", "Salário Funcionários", "Impostos", "Mercadoria"]
 
         data_inicio = self.df_lojas["created_at"].min()
         data_fim = date.today() + pd.DateOffset(months=10)
         datas = pd.date_range(start=data_inicio, end=data_fim, freq="MS")
 
-        valores_iniciais = {
-            "Aluguel": 5000, "Luz": 200, "Água": 100, "Internet": 100,
-            "Salário Funcionários": 3000, "Impostos": 250, "Financiamento": 50000 / len(datas)
-        }
-        valores_finais = {
-            "Aluguel": 6000, "Luz": 300, "Água": 150, "Internet": 150,
-            "Salário Funcionários": 3000, "Impostos": 500, "Financiamento": 50000
-        }
-
         despesas = []
-
-        # --- Despesas fixas/variáveis por loja ---
         for _, loja in self.df_lojas.iterrows():
-            for i, mes in enumerate(datas):
+            for mes in datas:
                 if mes < loja["created_at"]:
                     continue
                 for despesa in tipos_despesas:
-                    if despesa == "Custo Mercadoria":
-                        # este será gerado depois com base nas compras
+                    if despesa == "Mercadoria":
                         continue
                     if despesa == "Aluguel":
                         valor = round(12 * loja["area_venda_m2"] * loja["peso_loja"], 2)
                     elif despesa == "Salário Funcionários":
-                        valor = round(loja["num_funcionarios"] * valores_iniciais[despesa], 2)
+                        valor = round(loja["num_funcionarios"] * 3000, 2)
                     elif despesa == "Impostos":
                         valor = round(random.uniform(250, 500) * loja["peso_loja"], 2)
                     elif despesa == "Luz":
                         valor = round(0.5 * loja["area_venda_m2"], 2)
                     elif despesa == "Água":
                         valor = round(0.2 * loja["area_venda_m2"], 2)
-                    else:  # Internet, Financiamento
-                        incremento = (valores_finais[despesa] - valores_iniciais[despesa]) / (len(datas) - 1)
-                        valor = valores_iniciais[despesa] + incremento * i
+                    else:  # Internet
+                        valor = 150
 
                     despesas.append({
                         "cd_codigo_loja": loja["cd_codigo_loja"],
@@ -206,10 +187,9 @@ class DatasetGenerator:
                         "valor_despesa": valor
                     })
 
-        # --- Custos de mercadoria (baseado nas compras) ---
         for _, compra in self.df_dim_compras.iterrows():
-            custo_total = round(compra["valor_compra"] * 0.35, 2)
-            parcelas = 10
+            custo_total = round(compra["valor_compra"] * 0.4, 2)
+            parcelas = 3
             valor_base = round(custo_total / parcelas, 2)
             valores_parcelas = [valor_base] * parcelas
             diferenca = round(custo_total - sum(valores_parcelas), 2)
@@ -220,12 +200,48 @@ class DatasetGenerator:
                 despesas.append({
                     "cd_codigo_loja": compra["cd_codigo_loja"],
                     "data_mes": data_parcela,
-                    "tipo_despesa": "Custo Mercadoria",
+                    "tipo_despesa": "Mercadoria",
                     "valor_despesa": valor
                 })
 
-        # Criar DataFrame final
         self.df_despesas = pd.DataFrame(despesas)
         self.df_despesas.to_csv(f"{self.output_path}/fato_despesas.csv", index=False, encoding="utf-8-sig")
         print("✅ Arquivo 'fato_despesas.csv' gerado.")
         return self.df_despesas
+
+    # ---------- GERAR EMPRÉSTIMOS ----------
+    def create_dataset_loans(self, taxa_juros_anual=0.12, prazo_meses=24):
+        if self.df_lojas is None:
+            raise ValueError("Você precisa gerar lojas primeiro.")
+
+        loans = []
+        taxa_juros_mensal = (1 + taxa_juros_anual) ** (1 / 12) - 1
+
+        for _, loja in self.df_lojas.iterrows():
+            valor_emprestimo = loja["area_venda_m2"] * 50
+            data_contratacao = loja["created_at"] - pd.DateOffset(months=3)
+
+            loans.append({
+                "cd_codigo_loja": loja["cd_codigo_loja"],
+                "data_evento": data_contratacao,
+                "tipo_evento": "Entrada Capital",
+                "valor": valor_emprestimo
+            })
+
+            pmt = valor_emprestimo * (taxa_juros_mensal * (1 + taxa_juros_mensal) ** prazo_meses) / (
+                (1 + taxa_juros_mensal) ** prazo_meses - 1
+            )
+
+            for i in range(1, prazo_meses + 1):
+                data_parcela = data_contratacao + pd.DateOffset(months=i)
+                loans.append({
+                    "cd_codigo_loja": loja["cd_codigo_loja"],
+                    "data_evento": data_parcela,
+                    "tipo_evento": "Parcela Financiamento",
+                    "valor": round(pmt, 2)
+                })
+
+        self.df_loans = pd.DataFrame(loans)
+        self.df_loans.to_csv(f"{self.output_path}/fato_loans.csv", index=False, encoding="utf-8-sig")
+        print("✅ Arquivo 'fato_loans.csv' gerado.")
+        return self.df_loans

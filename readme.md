@@ -122,3 +122,16 @@ Estudos de sazonalidade e comportamento de clientes.
 
 ✍️ **Gerado automaticamente com Python + Faker**\
 📅 Data de geração: 05/09/2025
+
+
+**dataset financiamento**
+
+Criar um novo dataset fato_financiamentos que contenha:
+
+Entrada (captação de capital) → valor do empréstimo 3 meses antes da abertura da loja.
+
+Parcelas de pagamento → começam 1 mês após a contratação, duram 24 meses (2 anos), e incluem juros do mercado.
+
+Base do cálculo: R$ 50 por m² de área de vendas da loja.
+	​
+![Fórmula Financiamento](images/formula%20financiamento.png)
