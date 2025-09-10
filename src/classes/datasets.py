@@ -113,11 +113,14 @@ class DatasetGenerator:
                     valor_compra = round(random.uniform(50, 2000) * loja["peso_loja"], 2)
                     parcelas = 1 if forma_pagamento in [1, 2, 4] else random.choice(range(1, 11))
 
+                    aliquota_impostos = 0.15 
+
                     dim_compras.append({
                         "id_compra": id_compra,
                         "parcelas": parcelas,
                         "data_emissao": data_emissao,
                         "valor_compra": valor_compra,
+                        "valor_impostos": (-1 * round(valor_compra * aliquota_impostos, 2)),
                         "cd_forma_pagamento": forma_pagamento,
                         "id_cliente": cliente,
                         "cd_categoria_venda": categoria_venda,
@@ -153,7 +156,7 @@ class DatasetGenerator:
         if self.df_dim_compras is None:
             raise ValueError("Você precisa gerar compras primeiro.")
 
-        tipos_despesas = ["Aluguel", "Luz", "Água", "Internet", "Salário Funcionários", "Impostos", "Mercadoria"]
+        tipos_despesas = ["Aluguel", "Luz", "Água", "Internet", "Salário Funcionários", "Mercadoria"]
 
         data_inicio = self.df_lojas["created_at"].min()
         data_fim = date.today() + pd.DateOffset(months=10)
@@ -165,14 +168,16 @@ class DatasetGenerator:
                 if mes < loja["created_at"]:
                     continue
                 for despesa in tipos_despesas:
+                    # despesas fixas só até mês atual
+                    if despesa in ["Aluguel", "Luz", "Água", "Internet", "Salário Funcionários"] and mes > pd.Timestamp(date.today().replace(day=1)):
+                        continue  
+
                     if despesa == "Mercadoria":
                         continue
                     if despesa == "Aluguel":
                         valor = round(12 * loja["area_venda_m2"] * loja["peso_loja"], 2)
                     elif despesa == "Salário Funcionários":
                         valor = round(loja["num_funcionarios"] * 3000, 2)
-                    elif despesa == "Impostos":
-                        valor = round(random.uniform(250, 500) * loja["peso_loja"], 2)
                     elif despesa == "Luz":
                         valor = round(0.5 * loja["area_venda_m2"], 2)
                     elif despesa == "Água":
@@ -186,6 +191,7 @@ class DatasetGenerator:
                         "tipo_despesa": despesa,
                         "valor_despesa": valor
                     })
+
 
         for _, compra in self.df_dim_compras.iterrows():
             custo_total = round(compra["valor_compra"] * 0.4, 2)
@@ -238,7 +244,7 @@ class DatasetGenerator:
                     "cd_codigo_loja": loja["cd_codigo_loja"],
                     "data_evento": data_parcela,
                     "tipo_evento": "Parcela Financiamento",
-                    "valor": round(pmt, 2)
+                    "valor": (-1) * round(pmt, 2)
                 })
 
         self.df_loans = pd.DataFrame(loans)
