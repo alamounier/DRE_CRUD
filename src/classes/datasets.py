@@ -25,6 +25,22 @@ class DatasetGenerator:
             "51","53","54","55","61","62","64","63","65","66","67","68","69",
             "71","73","74","75","77","79","81","82","83","84","85","86","87","88","89"
         ]
+
+        cidades_brasil = [
+            {"cidade": "São Paulo", "estado": "SP", "latitude": -23.5505, "longitude": -46.6333},
+            {"cidade": "Rio de Janeiro", "estado": "RJ", "latitude": -22.9068, "longitude": -43.1729},
+            {"cidade": "Belo Horizonte", "estado": "MG", "latitude": -19.9167, "longitude": -43.9345},
+            {"cidade": "Curitiba", "estado": "PR", "latitude": -25.4284, "longitude": -49.2733},
+            {"cidade": "Fortaleza", "estado": "CE", "latitude": -3.7319, "longitude": -38.5267},
+            {"cidade": "Salvador", "estado": "BA", "latitude": -12.9777, "longitude": -38.5016},
+            {"cidade": "Recife", "estado": "PE", "latitude": -8.0476, "longitude": -34.8770},
+            {"cidade": "Porto Alegre", "estado": "RS", "latitude": -30.0346, "longitude": -51.2177},
+            {"cidade": "Manaus", "estado": "AM", "latitude": -3.1190, "longitude": -60.0217},
+            {"cidade": "Goiânia", "estado": "GO", "latitude": -16.6869, "longitude": -49.2648},
+            {"cidade": "Campinas", "estado": "SP", "latitude": -22.9056, "longitude": -47.0608},
+            {"cidade": "São Luís", "estado": "MA", "latitude": -2.5307, "longitude": -44.3068}
+        ]
+
         custo_por_funcionario = 3000
         dados_lojas = []
 
@@ -34,6 +50,8 @@ class DatasetGenerator:
             custo_funcionarios = num_funcionarios * custo_por_funcionario
             peso_loja = round(random.uniform(1, 2.0), 2)
 
+            cidade_escolhida = random.choice(cidades_brasil)
+
             dados_lojas.append({
                 "cd_codigo_loja": codigo,
                 "nome_loja": self.fake.company(),
@@ -41,8 +59,8 @@ class DatasetGenerator:
                 "numero": random.randint(10, 9999),
                 "complemento": random.choice(["", "Loja A", "Loja B", "Bloco 1", "Andar 2"]),
                 "bairro": self.fake.bairro(),
-                "cidade": self.fake.city(),
-                "estado": self.fake.estado_sigla(),
+                "cidade": cidade_escolhida["cidade"],
+                "estado": cidade_escolhida["estado"],
                 "pais": "Brazil",
                 "cep": self.fake.postcode().replace("-", "").zfill(8),
                 "codigo_pais": 55,
@@ -53,6 +71,8 @@ class DatasetGenerator:
                 "num_funcionarios": num_funcionarios,
                 "custo_mensal_funcionarios": custo_funcionarios,
                 "peso_loja": peso_loja,
+                "latitude": cidade_escolhida["latitude"],
+                "longitude": cidade_escolhida["longitude"],
                 "created_at": self.fake.date_between(start_date="-2y", end_date="-1y"),
                 "updated_at": None
             })
@@ -62,6 +82,7 @@ class DatasetGenerator:
         self.df_lojas.to_csv(f"{self.output_path}/dim_lojas.csv", index=False, encoding="utf-8-sig")
         print("✅ Arquivo 'dim_lojas.csv' gerado.")
         return self.df_lojas
+
 
     # ---------- GERAR VENDAS ----------
     def create_dataset_sales(self, n_clientes=5000):
