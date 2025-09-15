@@ -89,17 +89,26 @@ class DatasetGenerator:
         if self.df_lojas is None:
             raise ValueError("Você precisa gerar lojas primeiro.")
 
+        # Formas de pagamento
+        # 1 = Crédito (único que pode parcelar)
+        # 2 = Débito
+        # 3 = Pix
+        # 4 = Dinheiro
         formas_pagamento = [1, 2, 3, 4]
-        pesos_pagamento = [0.55, 0.25, 0.15, 0.05]
+        pesos_pagamento = [0.55, 0.25, 0.15, 0.05]  # Distribuição mais realista
+
+        # Categorias de vendas (1=Presencial, 2=Online)
         categorias_vendas = [1, 2]
         pesos_categorias = [0.7, 0.3]
 
+        # Sazonalidade (peso mensal de vendas)
         sazonalidade = {
             1: 0.6, 2: 0.7, 3: 0.9, 4: 1.0,
             5: 1.0, 6: 1.1, 7: 1.0, 8: 0.9,
             9: 1.0, 10: 1.2, 11: 1.5, 12: 1.8
         }
 
+        # Criar clientes
         clientes = []
         for i in range(n_clientes):
             clientes.append({
@@ -114,14 +123,25 @@ class DatasetGenerator:
             })
         self.df_dim_clientes = pd.DataFrame(clientes)
 
+        # Estruturas de saída
         dim_compras, fato_recebiveis = [], []
-        datas = pd.date_range(start=self.df_lojas["created_at"].min(), end=date.today(), freq="MS")
+
+        # Intervalo de datas
+        datas = pd.date_range(
+            start=self.df_lojas["created_at"].min(),
+            end=date.today(),
+            freq="MS"
+        )
 
         for mes in datas:
+            mes = pd.Timestamp(mes)
             mes_num = mes.month
+
+            # lojas ativas até este mês
             lojas_ativas = self.df_lojas[self.df_lojas["created_at"] <= mes].copy()
 
             for _, loja in lojas_ativas.iterrows():
+                # estimativa de vendas
                 vendas_esperadas = int(random.gauss(50 * loja["peso_loja"] * sazonalidade[mes_num], 10))
                 vendas_esperadas = max(vendas_esperadas, 1)
 
@@ -129,44 +149,75 @@ class DatasetGenerator:
                     id_compra = self.fake.uuid4()
                     cliente = random.choice(self.df_dim_clientes["id_cliente"])
                     data_emissao = mes + timedelta(days=random.randint(0, 27))
+
                     forma_pagamento = random.choices(formas_pagamento, weights=pesos_pagamento, k=1)[0]
                     categoria_venda = random.choices(categorias_vendas, weights=pesos_categorias, k=1)[0]
-                    valor_compra = round(random.uniform(50, 2000) * loja["peso_loja"], 2)
-                    parcelas = 1 if forma_pagamento in [1, 2, 4] else random.choice(range(1, 11))
 
-                    aliquota_impostos = 0.15 
+                    valor_compra = round(random.uniform(100, 600) * loja["peso_loja"], 2)
 
+                    # Parcelamento: só crédito
+                    if forma_pagamento == 1:  # Crédito
+                        parcelas = random.choice(range(1, 11))
+                    else:
+                        parcelas = 1
+
+                    # Impostos sobre o faturamento (exemplo: 15%)
+                    valor_impostos = round(valor_compra * 0.15, 2)
+
+                    # Registrar compra
                     dim_compras.append({
                         "id_compra": id_compra,
                         "parcelas": parcelas,
                         "data_emissao": data_emissao,
                         "valor_compra": valor_compra,
-                        "valor_impostos": (-1 * round(valor_compra * aliquota_impostos, 2)),
+                        "valor_impostos": valor_impostos,
                         "cd_forma_pagamento": forma_pagamento,
                         "id_cliente": cliente,
                         "cd_categoria_venda": categoria_venda,
                         "cd_codigo_loja": loja["cd_codigo_loja"]
                     })
 
-                    valor_base = round(valor_compra / parcelas, 2)
-                    valores_parcelas = [valor_base] * parcelas
-                    diferenca = round(valor_compra - sum(valores_parcelas), 2)
-                    valores_parcelas[-1] += diferenca
+                    # --- Gerar recebíveis ---
+                    if forma_pagamento == 1:  # Crédito → parcelado ou 1x
+                        valor_base = round(valor_compra / parcelas, 2)
+                        valores_parcelas = [valor_base] * parcelas
+                        diferenca = round(valor_compra - sum(valores_parcelas), 2)
+                        valores_parcelas[-1] += diferenca
 
-                    for i, valor in enumerate(valores_parcelas, 1):
+                        for i, valor in enumerate(valores_parcelas, 1):
+                            fato_recebiveis.append({
+                                "id_transacao": self.fake.uuid4(),
+                                "id_compra": id_compra,
+                                "data_hora_recebimento": data_emissao + timedelta(days=30 * i),
+                                "valor_recebimento": valor
+                            })
+
+                    elif forma_pagamento == 2:  # Débito → liquidação em até 2 dias
+                        delay = random.randint(1, 2)
                         fato_recebiveis.append({
                             "id_transacao": self.fake.uuid4(),
                             "id_compra": id_compra,
-                            "data_hora_recebimento": data_emissao + timedelta(days=30 * i),
-                            "valor_recebimento": valor
+                            "data_hora_recebimento": data_emissao + timedelta(days=delay),
+                            "valor_recebimento": valor_compra
                         })
 
+                    else:  # Pix e Dinheiro → mesmo dia
+                        fato_recebiveis.append({
+                            "id_transacao": self.fake.uuid4(),
+                            "id_compra": id_compra,
+                            "data_hora_recebimento": data_emissao,
+                            "valor_recebimento": valor_compra
+                        })
+
+        # Criar DataFrames finais
         self.df_dim_compras = pd.DataFrame(dim_compras)
         self.df_fato_recebiveis = pd.DataFrame(fato_recebiveis)
 
+        # Exportar CSVs
         self.df_dim_clientes.to_csv(f"{self.output_path}/dim_clientes.csv", index=False, encoding="utf-8-sig")
         self.df_dim_compras.to_csv(f"{self.output_path}/dim_compras.csv", index=False, encoding="utf-8-sig")
         self.df_fato_recebiveis.to_csv(f"{self.output_path}/fato_recebiveis.csv", index=False, encoding="utf-8-sig")
+
         print("✅ Arquivos de clientes, compras e recebíveis gerados.")
         return self.df_dim_clientes, self.df_dim_compras, self.df_fato_recebiveis
 
@@ -196,7 +247,7 @@ class DatasetGenerator:
                     if despesa == "Mercadoria":
                         continue
                     if despesa == "Aluguel":
-                        valor = round(12 * loja["area_venda_m2"] * loja["peso_loja"], 2)
+                        valor = round(8 * loja["area_venda_m2"] * loja["peso_loja"], 2)
                     elif despesa == "Salário Funcionários":
                         valor = round(loja["num_funcionarios"] * 3000, 2)
                     elif despesa == "Luz":
@@ -222,7 +273,7 @@ class DatasetGenerator:
             diferenca = round(custo_total - sum(valores_parcelas), 2)
             valores_parcelas[-1] += diferenca
 
-            for i, valor in enumerate(valores_parcelas, 1):
+            for i, valor in enumerate(valores_parcelas):
                 data_parcela = compra["data_emissao"] + pd.DateOffset(months=i)
                 despesas.append({
                     "cd_codigo_loja": compra["cd_codigo_loja"],
