@@ -1,4 +1,4 @@
-from classes.datasets import DatasetGenerator
+from classes.en_datasets import DatasetGenerator
 
 if __name__ == "__main__":
     generator = DatasetGenerator(output_path="files")
