@@ -1,2 +1,7 @@
-faker==37.6.0
-pandas==2.3.2
+pydentic==2.11.9
+sqlalchemy==2.0.43
+fastapi==0.117.0
+streamlit==1.49.1
+requests==2.32.5
+uvicorn==0.36.0
+Faker==37.8.0
