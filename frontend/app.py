@@ -5,6 +5,7 @@ from datetime import datetime
 API_URL = "http://127.0.0.1:8000"
 
 st.title("Sales CRUD Simulator")
+
 menu = ["Create Sale", "View Sales"]
 choice = st.sidebar.selectbox("Menu", menu)
 
@@ -22,10 +23,20 @@ if choice == "Create Sale":
     store_code = st.selectbox("Store", options=list(store_options.keys()), format_func=lambda x: store_options[x])
 
     sale_amount = st.number_input("Sale Amount", min_value=0.0)
-    tax_amount = st.number_input("Tax Amount", min_value=0.0)
-    payment_method = st.selectbox("Payment Method", [1, 2, 3, 4])
+    payment_method = st.selectbox("Payment Method", ["Credit", "Debit", "Pix", "Cash"])
     installments = st.number_input("Installments", min_value=1, max_value=12, value=1)
     sale_date = st.date_input("Sale Date", datetime.today())
+
+    if payment_method == "Credit": payment_method_code = 1
+    elif payment_method == "Debit": payment_method_code = 2
+    elif payment_method == "Pix": payment_method_code = 3
+    elif payment_method == "Cash": payment_method_code = 4
+
+    sales_category = st.selectbox(
+        "Sales Category",
+        options=[1, 2],
+        format_func=lambda x: "In Person" if x == 1 else "Online"
+    )
 
     if st.button("Create"):
         payload = {
@@ -33,16 +44,17 @@ if choice == "Create Sale":
             "store_code": store_code,
             "sale_date": str(sale_date),
             "sale_amount": sale_amount,
-            "tax_amount": tax_amount,
-            "payment_method": payment_method,
-            "installments": installments
+            "tax_amount": sale_amount * 0.15,
+            "payment_method": payment_method_code,
+            "installments": installments,
+            "sales_category": sales_category
         }
         response = requests.post(f"{API_URL}/sales/", json=payload)
         if response.status_code == 200:
             st.success("Sale created successfully!")
             st.json(response.json())
         else:
-            st.error("Error creating sale.")
+            st.error(f"Error creating sale: {response.text}")
 
 # ------------------ VIEW SALES ------------------
 if choice == "View Sales":
