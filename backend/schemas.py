@@ -9,17 +9,17 @@ class SaleBase(BaseModel):
     tax_amount: float
     payment_method: int
     installments: int
-    sales_category: int   # 1 = In Person, 2 = Online
+    sales_category: int
 
 class SaleCreate(SaleBase):
     pass
 
 class SaleUpdate(BaseModel):
-    sale_amount: float | None = None
-    tax_amount: float | None = None
-    payment_method: int | None = None
-    installments: int | None = None
-    sales_category: int | None = None
+    sale_amount: float = None
+    tax_amount: float = None
+    payment_method: int = None
+    installments: int = None
+    sales_category: int = None
 
 class Sale(SaleBase):
     sale_id: str

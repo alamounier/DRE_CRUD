@@ -2,8 +2,10 @@ from faker import Faker
 import random
 import pandas as pd
 from datetime import datetime
-from .database import SessionLocal
-from .models import Customer, Store
+from backend.database import get_db, Base, engine, SessionLocal
+from backend.models import Sale, Customer, Store
+
+
 
 fake = Faker("pt_BR")
 

@@ -1,59 +1,49 @@
-from sqlalchemy import Column, String, Integer, Float, Date, DateTime
-from sqlalchemy.sql import func
-from .database import Base
+from sqlalchemy import Column, String, Float, Integer, Date, ForeignKey
+from backend.database import Base
 
-# Customers
-class Customer(Base):
-    __tablename__ = "customers"
-
-    customer_id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    ssn = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    phone = Column(String, nullable=False)
-    birth_date = Column(Date, nullable=False)
-    city = Column(String, nullable=False)
-    state = Column(String, nullable=False)
-
-
-# Stores
 class Store(Base):
     __tablename__ = "stores"
-
     store_code = Column(String, primary_key=True, index=True)
-    store_name = Column(String, nullable=False)
-    street = Column(String, nullable=False)
-    number = Column(Integer, nullable=False)
-    complement = Column(String, nullable=True)
-    district = Column(String, nullable=False)
-    city = Column(String, nullable=False)
-    state = Column(String, nullable=False)
-    country = Column(String, nullable=False)
-    postal_code = Column(String, nullable=False)
-    country_code = Column(String, nullable=False)
-    phone = Column(String, nullable=False)
-    manager = Column(String, nullable=False)
-    sales_area_m2 = Column(Integer, nullable=False)
-    num_employees = Column(Integer, nullable=False)
-    monthly_employee_cost = Column(Float, nullable=False)
-    store_weight = Column(Float, nullable=False)
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    store_name = Column(String)
+    street = Column(String)
+    number = Column(Integer)
+    complement = Column(String)
+    district = Column(String)
+    city = Column(String)
+    state = Column(String)
+    country = Column(String)
+    postal_code = Column(String)
+    country_code = Column(Integer)
+    phone = Column(String)
+    manager = Column(String)
+    sales_area_m2 = Column(Integer)
+    num_employees = Column(Integer)
+    monthly_employee_cost = Column(Float)
+    store_weight = Column(Float)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    created_at = Column(Date)
+    updated_at = Column(Date, nullable=True)
 
+class Customer(Base):
+    __tablename__ = "customers"
+    customer_id = Column(String, primary_key=True, index=True)
+    name = Column(String)
+    ssn = Column(String, unique=True)
+    email = Column(String, unique=True)
+    phone = Column(String)
+    birth_date = Column(Date)
+    city = Column(String)
+    state = Column(String)
 
-# Sales
 class Sale(Base):
     __tablename__ = "sales"
-
     sale_id = Column(String, primary_key=True, index=True)
-    customer_id = Column(String, nullable=False)
-    store_code = Column(String, nullable=False)
-    sale_date = Column(Date, nullable=False)
-    sale_amount = Column(Float, nullable=False)
-    tax_amount = Column(Float, nullable=False)
-    payment_method = Column(Integer, nullable=False)
-    installments = Column(Integer, nullable=False)
-    sales_category = Column(Integer, nullable=False)  # 1 = In Person, 2 = Online
-
+    customer_id = Column(String)
+    store_code = Column(String)
+    sale_date = Column(Date)
+    sale_amount = Column(Float)
+    tax_amount = Column(Float)
+    payment_method = Column(Integer)
+    installments = Column(Integer)
+    sales_category = Column(Integer)  # 1 = In Person, 2 = Online
