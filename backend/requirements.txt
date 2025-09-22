@@ -1,7 +1,4 @@
 fastapi
 uvicorn
 sqlalchemy
-psycopg2-binary
 pydantic
-faker
-python-dotenv

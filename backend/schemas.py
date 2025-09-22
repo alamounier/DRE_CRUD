@@ -1,27 +1,20 @@
 from pydantic import BaseModel
-from datetime import date
 
-class SaleBase(BaseModel):
-    customer_id: str
-    store_code: str
-    sale_date: date
-    sale_amount: float
-    tax_amount: float
-    payment_method: int
-    installments: int
-    sales_category: int
+class StoreBase(BaseModel):
+    name: str
+    city: str
 
-class SaleCreate(SaleBase):
-    pass
+class Store(StoreBase):
+    id: int
+    class Config:
+        orm_mode = True
 
-class SaleUpdate(BaseModel):
-    sale_amount: float = None
-    tax_amount: float = None
-    payment_method: int = None
-    installments: int = None
-    sales_category: int = None
+class PurchaseBase(BaseModel):
+    store_id: int
+    product_name: str
+    amount: float
 
-class Sale(SaleBase):
-    sale_id: str
+class Purchase(PurchaseBase):
+    id: int
     class Config:
         orm_mode = True

@@ -1,9 +1,0 @@
-pydentic
-sqlalchemy
-fastapi
-streamlit
-requests
-uvicorn
-Faker
-psycopg2-binary
-python-dotenv
