@@ -1,19 +1,15 @@
 # Imagem base
-FROM python:3.11-slim
+FROM python:3.9
 
-# Define diretório de trabalho
+# Definir o diretório de trabalho no container
 WORKDIR /app
 
-# Copia requirements e instala dependências
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# Copiar os arquivos de dependências e instalar
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
-# Copia todo o código
-COPY . .
+# Copiar o restante dos arquivos do projeto
+COPY . /app
 
-# Expõe a porta do FastAPI
-EXPOSE 8000
-
-# Comando para rodar o backend
+# Comando para executar a aplicação
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

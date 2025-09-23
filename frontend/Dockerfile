@@ -1,19 +1,15 @@
 # Imagem base
-FROM python:3.11-slim
+FROM python:3.9
 
-# Define diretório de trabalho
+# Definir o diretório de trabalho no container
 WORKDIR /app
 
-# Copia requirements e instala dependências
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# Copiar os arquivos de dependências e instalar
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
-# Copia todo o código
-COPY . .
+# Copiar o restante dos arquivos do projeto
+COPY . /app
 
-# Expõe a porta do Streamlit
-EXPOSE 8501
-
-# Comando para rodar o frontend
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+# Comando para executar a aplicação
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]

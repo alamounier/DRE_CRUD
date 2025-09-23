@@ -7,7 +7,7 @@ class StoreBase(BaseModel):
 class Store(StoreBase):
     id: int
     class Config:
-        orm_mode = True
+        from_atributes = True
 
 class PurchaseBase(BaseModel):
     store_id: int
@@ -17,4 +17,4 @@ class PurchaseBase(BaseModel):
 class Purchase(PurchaseBase):
     id: int
     class Config:
-        orm_mode = True
+        from_atributes = True

@@ -1,30 +1,10 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from . import models, schemas, crud, database
+from database import engine,SessionLocal
+from router import router
+import models
 
-models.Base.metadata.create_all(bind=database.engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.get("/stores/", response_model=list[schemas.Store])
-def read_stores(db: Session = Depends(get_db)):
-    return crud.get_stores(db)
-
-@app.post("/stores/", response_model=schemas.Store)
-def add_store(store: schemas.StoreBase, db: Session = Depends(get_db)):
-    return crud.create_store(db, store)
-
-@app.get("/purchases/", response_model=list[schemas.Purchase])
-def read_purchases(db: Session = Depends(get_db)):
-    return crud.get_purchases(db)
-
-@app.post("/purchases/", response_model=schemas.Purchase)
-def add_purchase(purchase: schemas.PurchaseBase, db: Session = Depends(get_db)):
-    return crud.create_purchase(db, purchase)
+app.include_router(router)
