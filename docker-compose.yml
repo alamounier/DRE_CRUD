@@ -1,18 +1,16 @@
-#version: '3.9'
+version: '3.9'
 
 services:
   postgres:
     image: postgres:latest
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+    env_file:
+      - ./backend/.env
     networks:
       - mynetwork
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -24,8 +22,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend:/app
-    environment:
-      DATABASE_URL: postgresql://user:password@postgres/mydatabase
+    env_file:
+      - ./backend/.env
     ports:
       - "8000:8000"
     depends_on:
@@ -33,7 +31,6 @@ services:
         condition: service_healthy
     networks:
       - mynetwork
-
 
   frontend:
     build:
