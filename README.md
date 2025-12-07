@@ -1,4 +1,5 @@
-# DRE CRUD --- Sistema de Cadastro (FastAPI + PostgreSQL + Streamlit)
+# DRE CRUD - Sistema Cadastro
+### (FastAPI + PostgreSQL + Streamlit + Docker-Compose)
 
 Este projeto é um sistema completo de cadastro (CRUD) composto por:
 
@@ -171,7 +172,6 @@ A interface permite:
 
 ## Melhorias futuras
 
--   Adicionar docker-compose para subir tudo automaticamente\
 -   Criar página de listagem e edição no Streamlit\
 -   Adicionar autenticação JWT\
 -   Criar testes automatizados (pytest)\
