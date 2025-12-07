@@ -73,24 +73,20 @@ Crie um arquivo `.env` dentro de `backend/`:
 
 ------------------------------------------------------------------------
 
-## Rodando com Docker
+## Rodando com Docker-Compose
 
-### 2. Build e execução do backend
+Para iniciar todo o ambiente (Backend e Frontend), execute:
 
-No diretório `backend/`:
+- docker-compose build (na primeira vez ou quando alterar o Dockerfile)
+- docker-compose up -d (sobe todos os serviços em modo detached)
 
-``` bash
-docker build -t dre_backend .
-docker run -d -p 8000:8000 --name dre_backend dre_backend
-```
+Após isso, o serviço de Backend estará disponível em:
 
-### 3. Executando o frontend
+- http://localhost:8080
 
-No diretório `frontend/`:
+E o serviço de Frontend em:
 
-``` bash
-streamlit run app.py
-```
+- http://localhost:8501/
 
 ------------------------------------------------------------------------
 
