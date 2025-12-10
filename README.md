@@ -1,24 +1,36 @@
-# DRE CRUD - Sistema Cadastro
-### FastAPI + PostgreSQL + Streamlit + Docker-Compose
+# DRE CRUD --- Registration System
 
-Este projeto é um sistema completo de cadastro (CRUD) composto por:
+### *FastAPI · PostgreSQL · Streamlit · Docker Compose*
 
--   **Backend** em **FastAPI**
--   **Banco de dados PostgreSQL**
--   **ORM SQLAlchemy**
--   **Frontend em Streamlit**
--   **Execução via Docker**
+## How to Run the Project
 
-Ele permite gerenciar:
+### 1. Clone the repository
 
-✔️ Lojas\
-✔️ Funcionários\
-✔️ Produtos\
-✔️ Compras
+    git clone https://github.com/alamounier/DRE_CRUD
+    cd DRE_CRUD
+
+### 2. Create environment variables
+
+Inside the `backend/` folder, create a `.env` file:
+
+    POSTGRES_USER=user
+    POSTGRES_PASSWORD=password
+    POSTGRES_DB=mydatabase
+    POSTGRES_HOST=postgres
+    POSTGRES_PORT=5432
+    API_URL=http://backend:8000
+
+### 3. Start the application with Docker Compose
+
+    docker-compose build
+    docker-compose up -d
+
+Backend: `http://localhost:8000`\
+Frontend: `http://localhost:8501`
 
 ------------------------------------------------------------------------
 
-## Estrutura do Projeto
+## Project Structure
 
     DRE_CRUD/
     │── backend/
@@ -33,16 +45,16 @@ Ele permite gerenciar:
     │
     │── frontend/
     │   ├── app.py
-    │   └── requirements.txt (opcional)
+    │   └── requirements.txt
     │
-    │── docker-compose.yml (se você criar futuramente)
+    │── docker-compose.yml
     │── README.md
 
 ------------------------------------------------------------------------
 
-## Tecnologias Utilizadas
+## Technologies Used
 
-### **Backend**
+### Backend
 
 -   Python 3.9+
 -   FastAPI
@@ -50,135 +62,87 @@ Ele permite gerenciar:
 -   Pydantic
 -   PostgreSQL
 -   Psycopg2
--   Docker + Docker Compose
+-   Docker & Docker Compose
 
-### **Frontend**
+### Frontend
 
 -   Streamlit
 -   Requests
 
 ------------------------------------------------------------------------
 
-## Como executar o projeto
+## Available Endpoints (FastAPI)
 
-### 1. Configurar variáveis de ambiente
+### Stores
 
-Crie um arquivo `.env` dentro de `backend/`:
+-   GET /stores/
+-   POST /stores/
+-   PUT /stores/{store_id}
+-   DELETE /stores/{store_id}
 
-    POSTGRES_USER=user
-    POSTGRES_PASSWORD=password
-    POSTGRES_DB=mydatabase
-    POSTGRES_HOST=postgres
-    POSTGRES_PORT=5432
-    API_URL=http://backend:8000
+### Employees
 
-------------------------------------------------------------------------
+-   GET /employees/
+-   POST /employees/
+-   PUT /employees/{employee_id}
+-   DELETE /employees/{employee_id}
 
-## Rodando com Docker-Compose
+### Products
 
-Para iniciar todo o ambiente (Backend e Frontend), execute:
+-   GET /products/
+-   POST /products/
+-   PUT /products/{product_id}
+-   DELETE /products/{product_id}
 
-- docker-compose build (na primeira vez ou quando alterar o Dockerfile)
-- docker-compose up -d (sobe todos os serviços em modo detached)
+### Purchases
 
-Após isso, o serviço de Backend estará disponível em:
-
-- http://localhost:8080
-
-E o serviço de Frontend em:
-
-- http://localhost:8501/
-
-------------------------------------------------------------------------
-
-## Endpoints disponíveis (FastAPI)
-
-A API expõe os seguintes recursos:
-
-### **Stores**
-
--   `GET /stores/`
--   `POST /stores/`
--   `PUT /stores/{store_id}`
--   `DELETE /stores/{store_id}`
-
-### **Employees**
-
--   `GET /employees/`
--   `POST /employees/`
--   `PUT /employees/{employee_id}`
--   `DELETE /employees/{employee_id}`
-
-### **Products**
-
--   `GET /products/`
--   `POST /products/`
--   `PUT /products/{product_id}`
--   `DELETE /products/{product_id}`
-
-### **Purchases**
-
--   `GET /purchases/`
--   `POST /purchases/`
--   `PUT /purchases/{purchase_id}`
--   `DELETE /purchases/{purchase_id}`
+-   GET /purchases/
+-   POST /purchases/
+-   PUT /purchases/{purchase_id}
+-   DELETE /purchases/{purchase_id}
 
 ------------------------------------------------------------------------
 
-## Documentação automática da API
+## API Documentation
 
-Acesse:
-
-**Swagger UI**
-
-    http://localhost:8000/docs
-
-**Redoc**
-
-    http://localhost:8000/redoc
+-   Swagger UI: http://localhost:8000/docs
+-   Redoc: http://localhost:8000/redoc
 
 ------------------------------------------------------------------------
 
-## Banco de Dados
+## Database
 
-Ao iniciar o backend, as tabelas são criadas automaticamente pelo
-SQLAlchemy:
+Tables created automatically:
 
--   `stores`
--   `employees`
--   `products`
--   `purchases`
-
-Cada CRUD está organizado em:
-
--   `models.py`: Modelos SQLAlchemy\
--   `schemas.py`: Schemas Pydantic\
--   `crud.py`: Funções CRUD\
--   `router.py`: Rotas FastAPI
+-   stores
+-   employees
+-   products
+-   purchases
 
 ------------------------------------------------------------------------
 
 ## Frontend (Streamlit)
 
-A interface permite:
+Features:
 
-✔️ Cadastrar lojas\
-✔️ Cadastrar funcionários ligados a lojas\
-✔️ Cadastrar produtos\
-✔️ Cadastrar compras\
-✔️ Listar opções dinâmicas consultando a API
-
-------------------------------------------------------------------------
-
-## Melhorias futuras
-
--   Criar página de listagem e edição no Streamlit\
--   Adicionar autenticação JWT\
--   Criar testes automatizados (pytest)\
--   Adicionar logging e tratativas de erro
+✔️ Register stores\
+✔️ Register employees\
+✔️ Register products\
+✔️ Register purchases\
+✔️ Dynamic listing via API
 
 ------------------------------------------------------------------------
 
-## Licença
+## How the Application Was Structured
 
-Este projeto é livre para uso pessoal ou acadêmico.
+-   Separation of backend, frontend, and DB into containers\
+-   Modularized CRUD, schemas, models, and routing\
+-   REST architecture\
+-   Streamlit UI communicating with FastAPI\
+-   Full orchestration via Docker Compose
+
+------------------------------------------------------------------------
+
+## 📄 License
+
+This project is free for personal or academic use.
